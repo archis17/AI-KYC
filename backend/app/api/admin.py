@@ -8,6 +8,7 @@ from app.api.dependencies import get_current_admin_user
 from app.models.user import User
 from app.models.kyc import KYCApplication, AuditLog
 from app.schemas.kyc import KYCApplicationResponse, AuditLogResponse
+from app.api.kyc import enrich_application_response
 
 class RejectRequest(BaseModel):
     reason: Optional[str] = None
@@ -41,7 +42,8 @@ async def get_all_applications(
     if status:
         query = query.filter(KYCApplication.status == status)
     applications = query.offset(skip).limit(limit).all()
-    return applications
+    # Enrich with processing stage
+    return [KYCApplicationResponse(**enrich_application_response(app, db)) for app in applications]
 
 @router.get("/applications/{application_id}", response_model=KYCApplicationResponse)
 async def get_application_admin(
@@ -55,7 +57,8 @@ async def get_application_admin(
     ).first()
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
-    return application
+    # Enrich with processing stage
+    return KYCApplicationResponse(**enrich_application_response(application, db))
 
 @router.post("/applications/{application_id}/approve")
 async def approve_application(
@@ -180,4 +183,32 @@ async def reject_application_internal(
     db.commit()
     
     return {"message": "Application rejected", "application_id": application_id}
+
+@router.delete("/applications/{application_id}")
+async def delete_application(
+    application_id: int,
+    current_user: User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """Delete application and all related data (admin only)"""
+    application = db.query(KYCApplication).filter(
+        KYCApplication.id == application_id
+    ).first()
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Create audit log before deletion
+    audit_log = AuditLog(
+        application_id=application_id,
+        user_id=current_user.id,
+        action="delete",
+        details={"deleted_by": current_user.email}
+    )
+    db.add(audit_log)
+    
+    # Delete application (cascading deletes will handle documents, risk_scores, audit_logs)
+    db.delete(application)
+    db.commit()
+    
+    return {"message": "Application deleted successfully", "application_id": application_id}
 

@@ -180,11 +180,29 @@ class RiskScoringService:
         if not documents:
             return 100.0
         
-        confidences = [doc.ocr_confidence or 0.0 for doc in documents]
+        confidences = []
+        texts = []
+        for doc in documents:
+            if doc.ocr_confidence is not None:
+                confidences.append(doc.ocr_confidence)
+            if doc.ocr_text:
+                texts.append(doc.ocr_text.strip())
+        
+        # If no OCR confidence data at all, return 0 (don't penalize)
+        if not confidences:
+            return 0.0
+        
         avg_confidence = sum(confidences) / len(confidences)
+        
+        # If confidence is 0 and no text was extracted, it might be a system error
+        # Don't penalize as harshly - only penalize if we have some confidence data
+        if avg_confidence == 0.0 and not any(texts):
+            # System error or unreadable document - moderate penalty
+            return 50.0
         
         # Convert confidence to risk (low confidence = high risk)
         # If avg confidence is 0.9, risk is 10 (100 - 90)
+        # Scale: 0.0 confidence = 100 risk, 0.5 confidence = 50 risk, 1.0 confidence = 0 risk
         return max(0.0, 100.0 - (avg_confidence * 100))
     
     def _check_missing_documents(self, documents: List[Document]) -> float:

@@ -36,6 +36,8 @@ class KYCApplicationResponse(BaseModel):
     updated_at: Optional[datetime]
     documents: List[DocumentResponse] = []
     risk_score: Optional["RiskScoreResponse"] = None
+    processing_stage: Optional[str] = None  # pending, ocr, ner, llm, risk_scoring, workflow, completed
+    processing_message: Optional[str] = None  # Verbose status message
     
     class Config:
         from_attributes = True

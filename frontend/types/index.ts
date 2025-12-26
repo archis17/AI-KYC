@@ -51,6 +51,8 @@ export interface KYCApplication {
   updated_at: string | null
   documents: Document[]
   risk_score: RiskScore | null
+  processing_stage?: 'pending' | 'uploading' | 'ocr' | 'ner' | 'llm' | 'risk_scoring' | 'workflow' | 'completed' | 'unknown'
+  processing_message?: string
 }
 
 export interface AuditLog {

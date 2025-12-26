@@ -30,5 +30,11 @@ api.interceptors.response.use(
   }
 )
 
+// Helper function for deleting applications (admin only)
+export const deleteApplication = async (applicationId: number) => {
+  const response = await api.delete(`/api/admin/applications/${applicationId}`)
+  return response.data
+}
+
 export default api
 
