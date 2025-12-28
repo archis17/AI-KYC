@@ -64,3 +64,62 @@ export interface AuditLog {
   created_at: string
 }
 
+export interface AnalyticsSummary {
+  total_applications: number
+  applications_today: number
+  applications_this_month: number
+  applications_this_year: number
+  approved_count: number
+  rejected_count: number
+  review_count: number
+  pending_count: number
+  processing_count: number
+  approval_rate: number
+  rejection_rate: number
+  average_risk_score: number | null
+  average_processing_time_hours: number | null
+}
+
+export interface StatusDistribution {
+  status: string
+  count: number
+  percentage: number
+}
+
+export interface RiskScoreDistribution {
+  range: string
+  count: number
+  percentage: number
+}
+
+export interface TimeSeriesDataPoint {
+  date: string
+  count: number
+  approved: number
+  rejected: number
+  review: number
+}
+
+export interface DocumentTypeStats {
+  document_type: string
+  count: number
+  average_ocr_confidence: number | null
+}
+
+export interface RejectionReasonStats {
+  reason: string
+  count: number
+  percentage: number
+}
+
+export interface AnalyticsResponse {
+  summary: AnalyticsSummary
+  status_distribution: StatusDistribution[]
+  risk_score_distribution: RiskScoreDistribution[]
+  applications_over_time: TimeSeriesDataPoint[]
+  document_type_stats: DocumentTypeStats[]
+  rejection_reasons: RejectionReasonStats[]
+  period_start: string
+  period_end: string
+}
+
