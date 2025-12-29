@@ -36,5 +36,14 @@ export const deleteApplication = async (applicationId: number) => {
   return response.data
 }
 
+// Analytics API
+export const getAnalytics = async (startDate?: string, endDate?: string) => {
+  const params: any = {}
+  if (startDate) params.start_date = startDate
+  if (endDate) params.end_date = endDate
+  const response = await api.get('/api/admin/analytics', { params })
+  return response.data
+}
+
 export default api
 

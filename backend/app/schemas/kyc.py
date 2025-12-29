@@ -65,6 +65,59 @@ class AuditLogResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# Analytics Schemas
+class AnalyticsSummary(BaseModel):
+    total_applications: int
+    applications_today: int
+    applications_this_month: int
+    applications_this_year: int
+    approved_count: int
+    rejected_count: int
+    review_count: int
+    pending_count: int
+    processing_count: int
+    approval_rate: float  # percentage
+    rejection_rate: float  # percentage
+    average_risk_score: Optional[float] = None
+    average_processing_time_hours: Optional[float] = None
+
+class StatusDistribution(BaseModel):
+    status: str
+    count: int
+    percentage: float
+
+class RiskScoreDistribution(BaseModel):
+    range: str  # e.g., "0-30", "31-60", "61-100"
+    count: int
+    percentage: float
+
+class TimeSeriesDataPoint(BaseModel):
+    date: str  # ISO date string
+    count: int
+    approved: int
+    rejected: int
+    review: int
+
+class DocumentTypeStats(BaseModel):
+    document_type: str
+    count: int
+    average_ocr_confidence: Optional[float] = None
+
+class RejectionReasonStats(BaseModel):
+    reason: str
+    count: int
+    percentage: float
+
+class AnalyticsResponse(BaseModel):
+    summary: AnalyticsSummary
+    status_distribution: List[StatusDistribution]
+    risk_score_distribution: List[RiskScoreDistribution]
+    applications_over_time: List[TimeSeriesDataPoint]
+    document_type_stats: List[DocumentTypeStats]
+    rejection_reasons: List[RejectionReasonStats]
+    period_start: str  # ISO date string
+    period_end: str  # ISO date string
+
 # Update forward references
 KYCApplicationResponse.model_rebuild()
 
